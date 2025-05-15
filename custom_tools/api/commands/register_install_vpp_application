@@ -1,0 +1,51 @@
+#!/bin/bash
+
+source $MICROMDM_ENV_PATH
+
+echo 1_udid=$1
+echo 2_itunes=$2
+echo 3_sn=$3
+
+# Register VPP application for location
+# VPP_TOKEN VARIABLE IS GLOBAL VARIABLE
+# settings/micromdm_env
+
+curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $VPP_TOKEN" -d '{"assets": [        {            "adamId": "'$2'",            "pricingParam": "STDQ"        }           ],        "serialNumbers": [        "'$3'"    ]}' "https://vpp.itunes.apple.com/mdm/v2/assets/associate"
+
+# Install VPP application on device
+# VPP app needs to be registered with the device serial number using the apple endpoint (https://vpp.itunes.apple.com/mdm/v2/assets/associate)  before one can install it on a device
+
+####
+
+>/tmp/mdm.plist echo '<?xml version="1.0" encoding="UTF-8"?>'
+>>/tmp/mdm.plist echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
+>>/tmp/mdm.plist echo '<plist version="1.0">'
+>>/tmp/mdm.plist echo '<dict>'
+>>/tmp/mdm.plist echo '    <key>Command</key>'
+>>/tmp/mdm.plist echo '    <dict>'
+>>/tmp/mdm.plist echo '        <key>RequestType</key>'
+>>/tmp/mdm.plist echo '        <string>InstallApplication</string>'
+>>/tmp/mdm.plist echo '        <key>InstallAsManaged</key>'
+>>/tmp/mdm.plist echo '        <true/>'
+>>/tmp/mdm.plist echo '        <key>iTunesStoreID</key>'
+>>/tmp/mdm.plist echo '        <integer>'$2'</integer>'
+>>/tmp/mdm.plist echo '        <key>PurchaseMethod</key>'
+>>/tmp/mdm.plist echo '        <integer>1</integer>'
+>>/tmp/mdm.plist echo '    </dict>'
+>>/tmp/mdm.plist echo '    <key>CommandUUID</key>'
+>>/tmp/mdm.plist echo '    <string>'$(cat /proc/sys/kernel/random/uuid)'</string>'
+>>/tmp/mdm.plist echo '</dict>'
+>>/tmp/mdm.plist echo '</plist>'
+
+echo
+cat /tmp/mdm.plist
+echo
+
+# Install VPP application on device
+# VPP app needs to be registered with the device serial number using the apple endpoint (https://vpp.itunes.apple.com/mdm/v2/assets/associate)  before one can install it on a device
+
+endpoint="v1/commands/$1"
+
+curl $CURL_OPTS -K <(cat <<< "-u micromdm:$API_TOKEN") --data "@/tmp/mdm.plist" "$SERVER_URL/$endpoint"
+
+#####
