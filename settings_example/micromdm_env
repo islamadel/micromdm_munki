@@ -1,0 +1,3 @@
+export API_TOKEN=your-micromdm-api-token
+export SERVER_URL=https://your-micromdm.url
+export VPP_TOKEN="your-vpp-token"
