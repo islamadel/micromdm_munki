@@ -1,0 +1,60 @@
+#!/bin/bash
+
+source $MICROMDM_ENV_PATH
+
+echo 1_udid=$1
+echo 2_itunes=$2
+echo 3_sn=$3
+echo 4_identifier=$4
+
+# Unregister VPP application for location
+# VPP_TOKEN VARIABLE IS GLOBAL VARIABLE
+# settings/micromdm_env
+
+>/tmp/mdm.json echo '{'
+>>/tmp/mdm.json echo '    "assets": ['
+>>/tmp/mdm.json echo '        {'
+>>/tmp/mdm.json echo '            "adamId": "'$2'",'
+>>/tmp/mdm.json echo '            "pricingParam": "STDQ"'
+>>/tmp/mdm.json echo '        }'
+>>/tmp/mdm.json echo '    ],'
+>>/tmp/mdm.json echo '    "serialNumbers": ['
+>>/tmp/mdm.json echo '        "'$3'"'
+>>/tmp/mdm.json echo '    ]'
+>>/tmp/mdm.json echo '}'
+
+echo
+cat /tmp/mdm.json
+echo
+
+curl -X POST -H "Content-Type: application/json" -H "Authorization: Bearer $VPP_TOKEN" -d @/tmp/mdm.json "https://vpp.itunes.apple.com/mdm/v2/assets/disassociate"
+
+echo
+echo
+
+>/tmp/mdm.plist echo '<?xml version="1.0" encoding="UTF-8"?>'
+>>/tmp/mdm.plist echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
+>>/tmp/mdm.plist echo '<plist version="1.0">'
+>>/tmp/mdm.plist echo '<dict>'
+>>/tmp/mdm.plist echo '    <key>Command</key>'
+>>/tmp/mdm.plist echo '    <dict>'
+>>/tmp/mdm.plist echo '        <key>Identifier</key>'
+>>/tmp/mdm.plist echo '        <string>'$4'</string>'
+>>/tmp/mdm.plist echo '        <key>RequestType</key>'
+>>/tmp/mdm.plist echo '        <string>RemoveApplication</string>'
+>>/tmp/mdm.plist echo '    </dict>'
+>>/tmp/mdm.plist echo '    <key>CommandUUID</key>'
+>>/tmp/mdm.plist echo '    <string>'$(cat /proc/sys/kernel/random/uuid)'</string>'
+>>/tmp/mdm.plist echo '</dict>'
+>>/tmp/mdm.plist echo '</plist>'
+
+echo
+cat /tmp/mdm.plist
+echo
+
+# Install VPP application on device
+# VPP app needs to be registered with the device serial number using the apple endpoint (https://vpp.itunes.apple.com/mdm/v2/assets/associate)  before one can install it on a device
+
+endpoint="v1/commands/$1"
+
+curl $CURL_OPTS -K <(cat <<< "-u micromdm:$API_TOKEN") --data "@/tmp/mdm.plist" "$SERVER_URL/$endpoint"
