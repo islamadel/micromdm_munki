@@ -13,7 +13,7 @@ micromdm commands entered in munki manifests
 
 ## How it works
 
-The **micromdm_munki.sh** bash script is intended to run on the micromdm server. It connects to one or multiple munki repositories and scans for all manifests (in the root folder of manifests) having an included manifest inside manifests/micromdm/
+The **micromdm_munki.sh** bash script is intended to run on the micromdm server. It connects to one or multiple munki repositories and scans for all manifests named by device serial (in the root folder of manifests) having an included manifest inside manifests/micromdm/
 
 The notes field inside this included manifest, example: [munki_repo]/manifests/micromdm/example_manifest
 contains an interval in days to re-run micromdm api commands and the required parameters.
