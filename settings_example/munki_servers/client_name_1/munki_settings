@@ -1,0 +1,3 @@
+munki_user=munki-repo-user
+munki_pass_enc=munki-repo-password-base64
+munki_server=https://munki_repo1.url/munki
