@@ -1,0 +1,12 @@
+#!/bin/bash
+source $MICROMDM_ENV_PATH
+endpoint="v1/commands"
+jq -n \
+  --arg request_type "SetRecoveryLock" \
+  --arg udid "$1" \
+  --arg new_password $2 \
+  '.udid = $udid 
+  |.new_password = $new_password  
+  |.request_type = $request_type
+  '|\
+  curl $CURL_OPTS -K <(cat <<< "-u micromdm:$API_TOKEN") "$SERVER_URL/$endpoint" -d@-
