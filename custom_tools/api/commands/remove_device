@@ -1,0 +1,5 @@
+#!/bin/bash
+source $MICROMDM_ENV_PATH
+endpoint="v1/devices"
+serial="$1"
+curl $CURL_OPTS -X "DELETE" -H 'Content-Type: application/json' -K <(cat <<< "-u micromdm:$API_TOKEN") -d '{"Opts": {"serials": ["'$serial'"]}}' "$SERVER_URL/$endpoint"
