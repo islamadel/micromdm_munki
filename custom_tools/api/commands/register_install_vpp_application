@@ -41,8 +41,7 @@ echo
 cat /tmp/mdm.plist
 echo
 
-# Install VPP application on device
-# VPP app needs to be registered with the device serial number using the apple endpoint (https://vpp.itunes.apple.com/mdm/v2/assets/associate)  before one can install it on a device
+sleep 2
 
 endpoint="v1/commands/$1"
 
