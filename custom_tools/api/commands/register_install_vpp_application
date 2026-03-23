@@ -38,15 +38,15 @@ fi
 >>/tmp/mdm.plist echo '        <key>RequestType</key>'
 >>/tmp/mdm.plist echo '        <string>InstallApplication</string>'
 >>/tmp/mdm.plist echo '    </dict>'
->>/tmp/mdm.plist echo '    <key>Options</key>'
->>/tmp/mdm.plist echo '    <dict>'
->>/tmp/mdm.plist echo '        <key>PurchaseMethod</key>'
-if [ "$4" == "iosapp" ]; then
-	>>/tmp/mdm.plist echo '        <integer>0</integer>'
-else
-	>>/tmp/mdm.plist echo '        <integer>1</integer>'
-fi
->>/tmp/mdm.plist echo '    </dict>'
+# >>/tmp/mdm.plist echo '    <key>Options</key>'
+# >>/tmp/mdm.plist echo '    <dict>'
+# >>/tmp/mdm.plist echo '        <key>PurchaseMethod</key>'
+# if [ "$4" == "iosapp" ]; then
+# 	>>/tmp/mdm.plist echo '        <integer>0</integer>'
+# else
+# 	>>/tmp/mdm.plist echo '        <integer>1</integer>'
+# fi
+# >>/tmp/mdm.plist echo '    </dict>'
 >>/tmp/mdm.plist echo '    <key>CommandUUID</key>'
 >>/tmp/mdm.plist echo '    <string>'$(cat /proc/sys/kernel/random/uuid)'</string>'
 >>/tmp/mdm.plist echo '</dict>'
