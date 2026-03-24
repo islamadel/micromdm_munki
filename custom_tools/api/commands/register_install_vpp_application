@@ -18,6 +18,9 @@ echo "register exit code = $?"
 # VPP app needs to be registered with the device serial number using the apple endpoint (https://vpp.itunes.apple.com/mdm/v2/assets/associate)  before one can install it on a device
 
 ####
+sleep 2
+
+if [ "$4" == "iosapp" ]; then
 
 >/tmp/mdm.plist echo '<?xml version="1.0" encoding="UTF-8"?>'
 >>/tmp/mdm.plist echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">'
@@ -29,24 +32,15 @@ echo "register exit code = $?"
 >>/tmp/mdm.plist echo '        <string>Managed</string>'
 >>/tmp/mdm.plist echo '        <key>InstallAsManaged</key>'
 >>/tmp/mdm.plist echo '        <true/>'
-if [ "$4" == "iosapp" ]; then
-	>>/tmp/mdm.plist echo '        <key>iOSApp</key>'
-	>>/tmp/mdm.plist echo '        <true/>'
-fi
+>>/tmp/mdm.plist echo '        <key>iOSApp</key>'
+>>/tmp/mdm.plist echo '        <true/>'
 >>/tmp/mdm.plist echo '        <key>iTunesStoreID</key>'
 >>/tmp/mdm.plist echo '        <integer>'$2'</integer>'
+>>/tmp/mdm.plist echo '        <key>ManagementFlags</key>'
+>>/tmp/mdm.plist echo '        <integer>1</integer>'
 >>/tmp/mdm.plist echo '        <key>RequestType</key>'
 >>/tmp/mdm.plist echo '        <string>InstallApplication</string>'
 >>/tmp/mdm.plist echo '    </dict>'
-# >>/tmp/mdm.plist echo '    <key>Options</key>'
-# >>/tmp/mdm.plist echo '    <dict>'
-# >>/tmp/mdm.plist echo '        <key>PurchaseMethod</key>'
-# if [ "$4" == "iosapp" ]; then
-# 	>>/tmp/mdm.plist echo '        <integer>0</integer>'
-# else
-# 	>>/tmp/mdm.plist echo '        <integer>1</integer>'
-# fi
-# >>/tmp/mdm.plist echo '    </dict>'
 >>/tmp/mdm.plist echo '    <key>CommandUUID</key>'
 >>/tmp/mdm.plist echo '    <string>'$(cat /proc/sys/kernel/random/uuid)'</string>'
 >>/tmp/mdm.plist echo '</dict>'
@@ -61,9 +55,25 @@ sleep 2
 endpoint="v1/commands/$1"
 >/tmp/curl.conf echo "-u micromdm:${API_TOKEN}"
 curl $CURL_OPTS -K /tmp/curl.conf --data "@/tmp/mdm.plist" "$SERVER_URL/$endpoint"
-
 echo "install exit code = $?"
-#curl $CURL_OPTS -K <(cat <<< "-u micromdm:${API_TOKEN}") --data "@/tmp/mdm.plist" "$SERVER_URL/$endpoint"
-
 rm /tmp/curl.conf
 rm /tmp/mdm.plist
+
+else
+
+endpoint="v1/commands"
+
+jq -n \
+  --arg request_type "InstallApplication" \
+  --arg udid "$1" \
+  --arg itunes_store_id $2 \
+  '.udid = $udid
+  |.request_type = $request_type
+  |.itunes_store_id = ($itunes_store_id|tonumber)
+  |.options = {"purchase_method": 1}
+  '|\
+  curl $CURL_OPTS \
+    -H "Content-Type: application/json" \
+    -K <(cat <<< "-u micromdm:$API_TOKEN") "$SERVER_URL/$endpoint" -d@-
+echo "install exit code = $?"
+fi
